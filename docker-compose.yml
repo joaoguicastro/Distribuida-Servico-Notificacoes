@@ -1,0 +1,64 @@
+version: '3.9'
+
+services:
+  servico-notificacoes:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: healthsys-servico-notificacoes
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: postgres-notificacoes
+      RABBIT_HOST: rabbitmq
+    depends_on:
+      postgres-notificacoes:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - healthsys-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  postgres-notificacoes:
+    image: postgres:16-alpine
+    container_name: healthsys-postgres-notificacoes
+    environment:
+      POSTGRES_DB: notificacoes_db
+      POSTGRES_USER: healthsys
+      POSTGRES_PASSWORD: healthsys
+    networks:
+      - healthsys-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U healthsys -d notificacoes_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: healthsys-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: healthsys
+      RABBITMQ_DEFAULT_PASS: healthsys
+    networks:
+      - healthsys-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+
+networks:
+  healthsys-network:
+    driver: bridge
