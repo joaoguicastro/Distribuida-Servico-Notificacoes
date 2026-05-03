@@ -6,6 +6,11 @@ services:
       - "8085:8085"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      RABBIT_HOST: healthsys-rabbitmq
+      RABBIT_PORT: 5672
+      RABBIT_USER: guest
+      RABBIT_PASS: guest
+      DB_HOST: healthsys-postgres-notificacoes
     depends_on:
       postgres-notificacoes:
         condition: service_healthy
