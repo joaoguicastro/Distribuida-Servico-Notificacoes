@@ -5,9 +5,15 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 RUN mvn clean package -DskipTests -B
 
+<<<<<<< HEAD
 FROM eclipse-temurin:17-jre
 WORKDIR /app
 RUN groupadd -r healthsys && useradd -r -g healthsys healthsys
+=======
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+RUN addgroup -S healthsys && adduser -S healthsys -G healthsys
+>>>>>>> 9325b152a9bcd1d383852b097b9cef2bf74eafd3
 USER healthsys
 
 COPY --from=build /app/target/servico-notificacoes-*.jar app.jar
